@@ -12,7 +12,12 @@ func Test_Request_From_Bytes(t *testing.T) {
 
 	req := RequestFromBytes([]byte(rawReq))
 
+	host := req.Headers["Host"]
+	userAgent := req.Headers["User-Agent"]
+
 	assert.Equal(t, "GET", req.Method)
 	assert.Equal(t, "/index.html", req.Path)
 	assert.Equal(t, "HTTP/1.1", req.Protocol)
+	assert.Equal(t, host, req.Headers["Host"])
+	assert.Equal(t, userAgent, req.Headers["User-Agent"])
 }

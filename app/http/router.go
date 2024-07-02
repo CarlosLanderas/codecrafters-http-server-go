@@ -9,11 +9,6 @@ type Router struct {
 	handlers map[string]RouteHandler
 }
 
-const (
-	LiteralRoute = iota
-	RegexRouter
-)
-
 type RouteHandler = func(net.Conn, *HttpRequest) error
 
 func NewRouter() *Router {

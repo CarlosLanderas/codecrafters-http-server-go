@@ -10,6 +10,7 @@ func main() {
 	router := http.NewRouter()
 
 	router.Register("/echo/.*", http.EchoHandler)
+	router.Register("/user-agent", http.UserAgentHandler)
 	router.Register("^/$", http.RootHandler)
 
 	srv := server.New(4221, router)

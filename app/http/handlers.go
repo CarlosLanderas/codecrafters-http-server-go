@@ -29,3 +29,12 @@ func EchoHandler(conn net.Conn, req *HttpRequest) error {
 
 	return err
 }
+
+func UserAgentHandler(conn net.Conn, req *HttpRequest) error {
+	userAgent := req.Headers["User-Agent"]
+	resp := OkResponse(req.Protocol, []byte(userAgent))
+	resp.SetContentType("text/plain")
+
+	_, err := conn.Write(resp.Bytes())
+	return err
+}
