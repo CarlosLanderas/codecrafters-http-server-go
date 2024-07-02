@@ -11,11 +11,13 @@ import (
 type Server struct {
 	port     int
 	listener net.Listener
+	router   *http.Router
 }
 
-func New(port int) *Server {
+func New(port int, router *http.Router) *Server {
 	return &Server{
-		port: port,
+		port:   port,
+		router: router,
 	}
 }
 
@@ -37,7 +39,7 @@ func (s *Server) Start() error {
 			continue
 		}
 
-		go handleConnection(conn)
+		go s.handleConnection(conn)
 	}
 }
 
@@ -45,7 +47,7 @@ func (s *Server) Close() error {
 	return s.listener.Close()
 }
 
-func handleConnection(conn net.Conn) error {
+func (s *Server) handleConnection(conn net.Conn) error {
 	defer conn.Close()
 
 	// Read request
@@ -58,13 +60,18 @@ func handleConnection(conn net.Conn) error {
 
 	req := http.RequestFromBytes(buff)
 
-	if req.Path == "/" {
-		conn.Write(http.OkResponse(req.Protocol).Bytes())
-	} else {
-		conn.Write([]byte(http.NotFoundResponse(req.Protocol).Bytes()))
+	route, err := s.router.Get(req.Path)
+
+	if err != nil {
+		return err
 	}
 
-	fmt.Printf("%+v", req)
+	if route == nil {
+		http.NotFoundHandler(conn, req)
+		return nil
+	}
+
+	route(conn, req)
 
 	return nil
 }
