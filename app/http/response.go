@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 )
 
@@ -64,4 +65,12 @@ func (r *HttpResponse) String() string {
 
 func (r *HttpResponse) SetContentType(contentType string) {
 	r.ContentType = contentType
+}
+
+type ResponseWriter struct {
+	Conn net.Conn
+}
+
+func (rw *ResponseWriter) Write(data []byte) (int, error) {
+	return rw.Conn.Write(data)
 }

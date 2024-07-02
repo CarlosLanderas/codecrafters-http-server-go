@@ -1,7 +1,6 @@
 package http
 
 import (
-	"net"
 	"regexp"
 )
 
@@ -9,7 +8,7 @@ type Router struct {
 	handlers map[string]RouteHandler
 }
 
-type RouteHandler = func(net.Conn, *HttpRequest) error
+type RouteHandler = func(*ResponseWriter, *HttpRequest) error
 
 func NewRouter() *Router {
 	return &Router{

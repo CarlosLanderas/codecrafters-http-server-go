@@ -1,22 +1,23 @@
 package http
 
 import (
-	"net"
+	"os"
+	"path"
 	"strings"
 )
 
-func RootHandler(conn net.Conn, req *HttpRequest) error {
-	_, err := conn.Write(OkResponse(req.Protocol, nil).Bytes())
+func RootHandler(w *ResponseWriter, req *HttpRequest) error {
+	_, err := w.Write(OkResponse(req.Protocol, nil).Bytes())
 	return err
 }
 
-func NotFoundHandler(conn net.Conn, req *HttpRequest) error {
-	_, err := conn.Write([]byte(NotFoundResponse(req.Protocol, nil).Bytes()))
+func NotFoundHandler(w *ResponseWriter, req *HttpRequest) error {
+	_, err := w.Write([]byte(NotFoundResponse(req.Protocol, nil).Bytes()))
 	return err
 
 }
 
-func EchoHandler(conn net.Conn, req *HttpRequest) error {
+func EchoHandler(w *ResponseWriter, req *HttpRequest) error {
 
 	parts := strings.Split(req.Path, "/")
 
@@ -25,16 +26,37 @@ func EchoHandler(conn net.Conn, req *HttpRequest) error {
 	resp := OkResponse(req.Protocol, []byte(content))
 	resp.SetContentType("text/plain")
 
-	_, err := conn.Write(resp.Bytes())
+	_, err := w.Write(resp.Bytes())
 
 	return err
 }
 
-func UserAgentHandler(conn net.Conn, req *HttpRequest) error {
+func UserAgentHandler(w *ResponseWriter, req *HttpRequest) error {
 	userAgent := req.Headers["User-Agent"]
 	resp := OkResponse(req.Protocol, []byte(userAgent))
 	resp.SetContentType("text/plain")
 
-	_, err := conn.Write(resp.Bytes())
+	_, err := w.Write(resp.Bytes())
 	return err
+}
+
+func FileHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) error {
+	return func(w *ResponseWriter, req *HttpRequest) error {
+		fileStart := strings.LastIndex(req.Path, "/")
+		fileName := req.Path[fileStart+1 : len(req.Path)]
+		path := path.Join(filePath, fileName)
+
+		var resp *HttpResponse
+
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			resp = NotFoundResponse(req.Protocol, nil)
+		} else {
+			data, _ := os.ReadFile(path)
+			resp = OkResponse(req.Protocol, data)
+			resp.SetContentType("application/octet-stream")
+		}
+
+		_, err := w.Write(resp.Bytes())
+		return err
+	}
 }

@@ -66,12 +66,11 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		return err
 	}
 
+	w := &http.ResponseWriter{Conn: conn}
+
 	if route == nil {
-		http.NotFoundHandler(conn, req)
-		return nil
+		route = http.NotFoundHandler
 	}
 
-	route(conn, req)
-
-	return nil
+	return route(w, req)
 }

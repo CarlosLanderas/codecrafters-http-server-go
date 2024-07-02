@@ -1,7 +1,6 @@
 package http
 
 import (
-	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ func Test_Router(t *testing.T) {
 
 	executed := false
 
-	router.Register("/echo/.*", func(c net.Conn, hr *HttpRequest) error {
+	router.Register("/echo/.*", func(w *ResponseWriter, hr *HttpRequest) error {
 		executed = true
 		return nil
 	})

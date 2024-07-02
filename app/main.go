@@ -1,17 +1,30 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"slices"
+
 	"github.com/codecrafters-io/http-server-starter-go/app/http"
 	"github.com/codecrafters-io/http-server-starter-go/app/server"
 )
 
 func main() {
 
+	var filesPath string
+
+	if slices.Contains(os.Args, "--directory") && len(os.Args) > 2 {
+		filesPath = os.Args[2]
+	}
+
+	fmt.Println("Configured files directory:", filesPath)
+
 	router := http.NewRouter()
 
 	router.Register("/echo/.*", http.EchoHandler)
 	router.Register("/user-agent", http.UserAgentHandler)
 	router.Register("^/$", http.RootHandler)
+	router.Register("/files/.*", http.FileHandler(filesPath))
 
 	srv := server.New(4221, router)
 

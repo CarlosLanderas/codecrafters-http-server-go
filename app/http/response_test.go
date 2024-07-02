@@ -1,6 +1,8 @@
 package http
 
 import (
+	"io"
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,4 +37,26 @@ func Test_Response_Content(t *testing.T) {
 	expectedResponse := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:6\r\n\r\ncarlos"
 
 	assert.Equal(t, expectedResponse, resp)
+}
+
+func Test_Response_Writer(t *testing.T) {
+
+	content := "lorem ipsum"
+
+	r, w := net.Pipe()
+
+	defer r.Close()
+	defer w.Close()
+
+	writer := ResponseWriter{Conn: w}
+
+	go func() {
+		writer.Write([]byte(content))
+	}()
+
+	buff := make([]byte, len(content))
+
+	io.ReadFull(r, buff)
+
+	assert.Equal(t, content, string(buff))
 }
