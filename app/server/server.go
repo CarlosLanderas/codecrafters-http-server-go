@@ -60,7 +60,7 @@ func (s *Server) handleConnection(conn net.Conn) error {
 
 	req := http.RequestFromBytes(buff)
 
-	route, err := s.router.Get(req.Path)
+	route, err := s.router.Get(req)
 
 	if err != nil {
 		return err

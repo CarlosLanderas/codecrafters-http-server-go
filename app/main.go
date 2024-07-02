@@ -21,10 +21,11 @@ func main() {
 
 	router := http.NewRouter()
 
-	router.Register("/echo/.*", http.EchoHandler)
-	router.Register("/user-agent", http.UserAgentHandler)
-	router.Register("^/$", http.RootHandler)
-	router.Register("/files/.*", http.FileHandler(filesPath))
+	router.Register("/echo/.*", "GET", http.EchoHandler)
+	router.Register("/user-agent", "GET", http.UserAgentHandler)
+	router.Register("/$", "GET", http.RootHandler)
+	router.Register("/files/.*", "GET", http.FileHandler(filesPath))
+	router.Register("/files/.*", "POST", http.FilePostHandler(filesPath))
 
 	srv := server.New(4221, router)
 

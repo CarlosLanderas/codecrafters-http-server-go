@@ -1,6 +1,8 @@
 package http
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -42,8 +44,7 @@ func UserAgentHandler(w *ResponseWriter, req *HttpRequest) error {
 
 func FileHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) error {
 	return func(w *ResponseWriter, req *HttpRequest) error {
-		fileStart := strings.LastIndex(req.Path, "/")
-		fileName := req.Path[fileStart+1 : len(req.Path)]
+		fileName := pathFileName(req.Path)
 		path := path.Join(filePath, fileName)
 
 		var resp *HttpResponse
@@ -59,4 +60,32 @@ func FileHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) erro
 		_, err := w.Write(resp.Bytes())
 		return err
 	}
+}
+
+func FilePostHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) error {
+	return func(w *ResponseWriter, req *HttpRequest) error {
+		fileName := pathFileName(req.Path)
+		path := path.Join(filePath, fileName)
+
+		fmt.Println(fileName)
+
+		body, err := io.ReadAll(req.Body)
+
+		if err != nil {
+			return err
+		}
+
+		os.WriteFile(path, body, os.ModePerm)
+
+		w.Write(CreatedResponse(req.Protocol, nil).Bytes())
+
+		return nil
+	}
+}
+
+func pathFileName(path string) string {
+	fileStart := strings.LastIndex(path, "/")
+	fileName := path[fileStart+1 : len(path)]
+
+	return fileName
 }

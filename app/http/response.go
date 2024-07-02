@@ -21,6 +21,14 @@ func OkResponse(protocol string, payload []byte) *HttpResponse {
 	}
 }
 
+func CreatedResponse(protocol string, payload []byte) *HttpResponse {
+	return &HttpResponse{
+		Protocol:   protocol,
+		Payload:    payload,
+		StatusCode: http.StatusCreated,
+	}
+}
+
 func NotFoundResponse(protocol string, payload []byte) *HttpResponse {
 	return &HttpResponse{
 		Protocol:   protocol,

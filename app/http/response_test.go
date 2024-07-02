@@ -3,6 +3,7 @@ package http
 import (
 	"io"
 	"net"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,11 +20,14 @@ func Test_Response(t *testing.T) {
 }
 
 func Test_Response_Bytes(t *testing.T) {
-	ok := OkResponse(Protocol, nil)
+
+	payload := string("content")
+	ok := OkResponse(Protocol, []byte(payload))
+	ok.SetContentType("text/plain")
 
 	resp := string(ok.Bytes())
 
-	assert.Equal(t, resp, "HTTP/1.1 200 OK\r\n\r\n")
+	assert.Equal(t, resp, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:7\r\n\r\ncontent")
 }
 
 func Test_Response_Content(t *testing.T) {
@@ -37,6 +41,19 @@ func Test_Response_Content(t *testing.T) {
 	expectedResponse := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:6\r\n\r\ncarlos"
 
 	assert.Equal(t, expectedResponse, resp)
+}
+
+func Test_Response_Body(t *testing.T) {
+	rawRequest := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:7\r\n\r\npayload"
+
+	req := RequestFromBytes([]byte(rawRequest))
+
+	body, _ := io.ReadAll(req.Body)
+	length, _ := strconv.Atoi(req.Headers["Content-Length"])
+
+	assert.Equal(t, "payload", string(body))
+	assert.Equal(t, 7, length)
+
 }
 
 func Test_Response_Writer(t *testing.T) {

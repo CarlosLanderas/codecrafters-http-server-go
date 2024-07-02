@@ -11,12 +11,17 @@ func Test_Router(t *testing.T) {
 
 	executed := false
 
-	router.Register("/echo/.*", func(w *ResponseWriter, hr *HttpRequest) error {
+	router.Register("/echo/.*", "GET", func(w *ResponseWriter, hr *HttpRequest) error {
 		executed = true
 		return nil
 	})
 
-	route, err := router.Get("/echo/carlos")
+	req := &HttpRequest{
+		Method: "GET",
+		Path:   "/echo/carlos",
+	}
+
+	route, err := router.Get(req)
 
 	if err != nil {
 		panic(err)
@@ -25,4 +30,21 @@ func Test_Router(t *testing.T) {
 	route(nil, nil)
 
 	assert.Equal(t, true, executed)
+}
+
+func Test_Route_Not_Found(t *testing.T) {
+	router := NewRouter()
+
+	router.Register("/echo/.*", "GET", func(w *ResponseWriter, hr *HttpRequest) error {
+		return nil
+	})
+
+	req := &HttpRequest{
+		Method: "POST",
+		Path:   "/echo/carlos",
+	}
+
+	route, _ := router.Get(req)
+
+	assert.Nil(t, route)
 }
