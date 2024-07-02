@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -66,9 +65,6 @@ func FilePostHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) 
 	return func(w *ResponseWriter, req *HttpRequest) error {
 		fileName := pathFileName(req.Path)
 		path := path.Join(filePath, fileName)
-
-		fmt.Println(fileName)
-
 		body, err := io.ReadAll(req.Body)
 
 		if err != nil {
@@ -76,7 +72,6 @@ func FilePostHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) 
 		}
 
 		os.WriteFile(path, body, os.ModePerm)
-
 		w.Write(CreatedResponse(req.Protocol, nil).Bytes())
 
 		return nil
