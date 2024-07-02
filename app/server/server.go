@@ -2,7 +2,10 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net"
+
+	"github.com/codecrafters-io/http-server-starter-go/app/http"
 )
 
 type Server struct {
@@ -42,9 +45,26 @@ func (s *Server) Close() error {
 	return s.listener.Close()
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn) error {
 	defer conn.Close()
 
-	// 200 message
-	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	// Read request
+	buff := make([]byte, 1024)
+	_, err := conn.Read(buff)
+
+	if err != nil {
+		log.Fatalf("error reading request: %v", err)
+	}
+
+	req := http.RequestFromBytes(buff)
+
+	if req.Path == "/" {
+		conn.Write(http.OkResponse(req.Protocol).Bytes())
+	} else {
+		conn.Write([]byte(http.NotFoundResponse(req.Protocol).Bytes()))
+	}
+
+	fmt.Printf("%+v", req)
+
+	return nil
 }
