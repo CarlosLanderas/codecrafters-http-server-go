@@ -2,26 +2,29 @@ package main
 
 import (
 	"fmt"
-	// Uncomment this block to pass the first stage
-	// "net"
-	// "os"
+	"net"
+	"os"
 )
 
-func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Println("Logs from your program will appear here!")
+// Uncomment this block to pass the first stage
+// "net"
+// "os"
 
-	// Uncomment this block to pass the first stage
-	//
-	// l, err := net.Listen("tcp", "0.0.0.0:4221")
-	// if err != nil {
-	// 	fmt.Println("Failed to bind to port 4221")
-	// 	os.Exit(1)
-	// }
-	//
-	// _, err = l.Accept()
-	// if err != nil {
-	// 	fmt.Println("Error accepting connection: ", err.Error())
-	// 	os.Exit(1)
-	// }
+func main() {
+
+	port := 4221
+
+	fmt.Println("Starting http server in port:", port)
+
+	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", 4221))
+	if err != nil {
+		fmt.Println("Failed to bind to port 4221")
+		os.Exit(1)
+	}
+
+	_, err = l.Accept()
+	if err != nil {
+		fmt.Println("Error accepting connection: ", err.Error())
+		os.Exit(1)
+	}
 }
