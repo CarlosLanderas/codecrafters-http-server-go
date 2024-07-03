@@ -68,6 +68,10 @@ func (s *Server) handleConnection(conn net.Conn) error {
 
 	w := &http.ResponseWriter{Conn: conn}
 
+	if req.ValidEncoding() {
+		w.Encoding = req.AcceptEncoding()
+	}
+
 	if route == nil {
 		route = http.NotFoundHandler
 	}

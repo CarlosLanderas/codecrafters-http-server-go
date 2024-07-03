@@ -27,7 +27,7 @@ func Test_Response_Bytes(t *testing.T) {
 
 	resp := string(ok.Bytes())
 
-	assert.Equal(t, resp, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:7\r\n\r\ncontent")
+	assert.Equal(t, resp, "HTTP/1.1 200 OK\r\nContent-Length:7\r\nContent-Type:text/plain\r\n\r\ncontent")
 }
 
 func Test_Response_Content(t *testing.T) {
@@ -38,7 +38,7 @@ func Test_Response_Content(t *testing.T) {
 
 	resp := string(ok.Bytes())
 
-	expectedResponse := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length:6\r\n\r\ncarlos"
+	expectedResponse := "HTTP/1.1 200 OK\r\nContent-Length:6\r\nContent-Type:text/plain\r\n\r\ncarlos"
 
 	assert.Equal(t, expectedResponse, resp)
 }
@@ -58,8 +58,6 @@ func Test_Response_Body(t *testing.T) {
 
 func Test_Response_Writer(t *testing.T) {
 
-	content := "lorem ipsum"
-
 	r, w := net.Pipe()
 
 	defer r.Close()
@@ -67,13 +65,17 @@ func Test_Response_Writer(t *testing.T) {
 
 	writer := ResponseWriter{Conn: w}
 
+	resp := NewResponse(200, "HTTP/1.1", []byte("lorem ipsum"))
+
+	respBytes := resp.Bytes()
+
 	go func() {
-		writer.Write([]byte(content))
+		writer.Write(resp)
 	}()
 
-	buff := make([]byte, len(content))
+	buff := make([]byte, len(respBytes))
 
 	io.ReadFull(r, buff)
 
-	assert.Equal(t, content, string(buff))
+	assert.Equal(t, buff, respBytes)
 }

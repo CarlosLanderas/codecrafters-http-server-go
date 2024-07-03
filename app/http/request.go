@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -21,6 +22,8 @@ func RequestFromBytes(buff []byte) *HttpRequest {
 	reqParts := strings.Split(req, "\r\n")
 	actionParts := strings.Split(reqParts[0], " ")
 
+	request := &HttpRequest{}
+
 	// Parse headers
 	headers := make(map[string]string)
 
@@ -37,26 +40,43 @@ func RequestFromBytes(buff []byte) *HttpRequest {
 		headers[headerParts[0]] = strings.TrimSpace(headerParts[1])
 	}
 
-	// Read the body
-
-	contentLength := 0
-
-	if length, ok := headers["Content-Length"]; ok {
-		length, err := strconv.Atoi(length)
-		if err == nil {
-			contentLength = length
-		}
-	}
+	request.Method = actionParts[0]
+	request.Path = actionParts[1]
+	request.Protocol = actionParts[2]
+	request.Headers = headers
 
 	body := reqParts[headerEnd+1]
+	content := body[:request.ContentLength()]
 
-	content := body[:contentLength]
+	request.Body = bytes.NewReader([]byte(content))
 
-	return &HttpRequest{
-		Method:   actionParts[0],
-		Path:     actionParts[1],
-		Protocol: actionParts[2],
-		Body:     bytes.NewReader([]byte(content)),
-		Headers:  headers,
+	return request
+}
+
+func (hr *HttpRequest) ContentLength() int {
+	val, ok := hr.Headers["Content-Length"]
+
+	if ok {
+		length, err := strconv.Atoi(val)
+		if err != nil {
+			return 0
+		}
+		return length
 	}
+
+	return 0
+}
+
+func (hr *HttpRequest) ValidEncoding() bool {
+	value := hr.AcceptEncoding()
+
+	return slices.Contains(SupportedEncodings, value)
+}
+
+func (hr *HttpRequest) AcceptEncoding() string {
+	if val, ok := hr.Headers["Accept-Encoding"]; ok {
+		return val
+	}
+
+	return ""
 }

@@ -8,12 +8,12 @@ import (
 )
 
 func RootHandler(w *ResponseWriter, req *HttpRequest) error {
-	_, err := w.Write(OkResponse(req.Protocol, nil).Bytes())
+	_, err := w.Write(OkResponse(req.Protocol, nil))
 	return err
 }
 
 func NotFoundHandler(w *ResponseWriter, req *HttpRequest) error {
-	_, err := w.Write([]byte(NotFoundResponse(req.Protocol, nil).Bytes()))
+	_, err := w.Write(NotFoundResponse(req.Protocol, nil))
 	return err
 
 }
@@ -27,7 +27,7 @@ func EchoHandler(w *ResponseWriter, req *HttpRequest) error {
 	resp := OkResponse(req.Protocol, []byte(content))
 	resp.SetContentType("text/plain")
 
-	_, err := w.Write(resp.Bytes())
+	_, err := w.Write(resp)
 
 	return err
 }
@@ -37,7 +37,7 @@ func UserAgentHandler(w *ResponseWriter, req *HttpRequest) error {
 	resp := OkResponse(req.Protocol, []byte(userAgent))
 	resp.SetContentType("text/plain")
 
-	_, err := w.Write(resp.Bytes())
+	_, err := w.Write(resp)
 	return err
 }
 
@@ -56,7 +56,7 @@ func FileHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) erro
 			resp.SetContentType("application/octet-stream")
 		}
 
-		_, err := w.Write(resp.Bytes())
+		_, err := w.Write(resp)
 		return err
 	}
 }
@@ -72,7 +72,7 @@ func FilePostHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) 
 		}
 
 		os.WriteFile(path, body, os.ModePerm)
-		w.Write(CreatedResponse(req.Protocol, nil).Bytes())
+		w.Write(CreatedResponse(req.Protocol, nil))
 
 		return nil
 	}
@@ -80,7 +80,7 @@ func FilePostHandler(filePath string) func(w *ResponseWriter, req *HttpRequest) 
 
 func pathFileName(path string) string {
 	fileStart := strings.LastIndex(path, "/")
-	fileName := path[fileStart+1 : len(path)]
+	fileName := path[fileStart+1:]
 
 	return fileName
 }

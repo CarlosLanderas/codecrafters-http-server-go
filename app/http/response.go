@@ -1,40 +1,40 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 )
 
-func NewResponse(statusCode int, protocol string) *HttpResponse {
-	return &HttpResponse{
+func NewResponse(statusCode int, protocol string, payload []byte) *HttpResponse {
+	r := &HttpResponse{
 		Protocol:   protocol,
 		StatusCode: statusCode,
+		Payload:    payload,
+		Headers:    make(map[string]string),
 	}
+
+	if payload != nil {
+		r.SetContentLength(len(payload))
+	} else {
+		r.SetContentLength(0)
+	}
+
+	return r
 }
 
 func OkResponse(protocol string, payload []byte) *HttpResponse {
-	return &HttpResponse{
-		Protocol:   protocol,
-		Payload:    payload,
-		StatusCode: http.StatusOK,
-	}
+	return NewResponse(http.StatusOK, protocol, payload)
 }
 
 func CreatedResponse(protocol string, payload []byte) *HttpResponse {
-	return &HttpResponse{
-		Protocol:   protocol,
-		Payload:    payload,
-		StatusCode: http.StatusCreated,
-	}
+	return NewResponse(http.StatusCreated, protocol, payload)
 }
 
 func NotFoundResponse(protocol string, payload []byte) *HttpResponse {
-	return &HttpResponse{
-		Protocol:   protocol,
-		Payload:    payload,
-		StatusCode: http.StatusNotFound,
-	}
+	return NewResponse(http.StatusNotFound, protocol, payload)
 }
 
 type HttpResponse struct {
@@ -62,23 +62,55 @@ func (r *HttpResponse) Length() int {
 }
 
 func (r *HttpResponse) String() string {
-	return fmt.Sprintf("%s %d %s\r\nContent-Type: %s\r\nContent-Length:%d\r\n\r\n%s",
+	return fmt.Sprintf("%s %d %s\r\n%s\r\n%s",
 		r.Protocol,
 		r.StatusCode,
 		http.StatusText(r.StatusCode),
-		r.ContentType,
-		r.Length(),
+		r.renderHeaders(),
 		string(r.Payload))
 }
 
 func (r *HttpResponse) SetContentType(contentType string) {
-	r.ContentType = contentType
+	r.Headers["Content-Type"] = contentType
+}
+
+func (r *HttpResponse) SetContentLength(contentLength int) {
+	length := strconv.Itoa(contentLength)
+	r.Headers["Content-Length"] = length
+}
+
+func (r *HttpResponse) SetContentEncoding(encoding string) {
+	r.Headers["Content-Encoding"] = encoding
+}
+
+func (r *HttpResponse) renderHeaders() string {
+	var buff bytes.Buffer
+
+	for k, v := range r.Headers {
+		headerRaw := fmt.Sprintf("%s:%s\r\n", k, v)
+		buff.WriteString(headerRaw)
+	}
+
+	return buff.String()
 }
 
 type ResponseWriter struct {
-	Conn net.Conn
+	Conn     net.Conn
+	Encoding string
+	response *HttpResponse
 }
 
-func (rw *ResponseWriter) Write(data []byte) (int, error) {
-	return rw.Conn.Write(data)
+func (rw *ResponseWriter) Write(response *HttpResponse) (int, error) {
+	rw.response = response
+
+	if rw.Encoding != "" {
+		// Compress
+		rw.response.Headers["Content-Encoding"] = rw.Encoding
+	}
+
+	return rw.flush()
+}
+
+func (rw *ResponseWriter) flush() (int, error) {
+	return rw.Conn.Write(rw.response.Bytes())
 }
