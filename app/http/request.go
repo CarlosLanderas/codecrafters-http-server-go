@@ -70,13 +70,38 @@ func (hr *HttpRequest) ContentLength() int {
 func (hr *HttpRequest) ValidEncoding() bool {
 	value := hr.AcceptEncoding()
 
-	return slices.Contains(SupportedEncodings, value)
+	return slices.ContainsFunc(SupportedEncodings, func(enc string) bool {
+		return slices.Contains(value, enc)
+	})
 }
 
-func (hr *HttpRequest) AcceptEncoding() string {
-	if val, ok := hr.Headers["Accept-Encoding"]; ok {
-		return val
+func (hr *HttpRequest) AcceptEncoding() []string {
+
+	val, ok := hr.Headers["Accept-Encoding"]
+
+	encodings := make([]string, 0)
+
+	if !ok {
+		return encodings
 	}
 
-	return ""
+	if strings.Contains(val, ",") {
+		encodings = strings.Split(val, ",")
+	} else {
+		encodings = []string{val}
+	}
+
+	for i, e := range encodings {
+		encodings[i] = strings.TrimSpace(e)
+	}
+
+	validEnc := make([]string, 0)
+
+	for _, e := range encodings {
+		if slices.Contains(SupportedEncodings, e) {
+			validEnc = append(validEnc, e)
+		}
+	}
+
+	return validEnc
 }

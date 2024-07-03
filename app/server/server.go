@@ -69,7 +69,7 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	w := &http.ResponseWriter{Conn: conn}
 
 	if req.ValidEncoding() {
-		w.Encoding = req.AcceptEncoding()
+		w.Encoding = req.AcceptEncoding()[0]
 	}
 
 	if route == nil {

@@ -24,9 +24,9 @@ func Test_Request_From_Bytes(t *testing.T) {
 
 func Test_Request_Accept_Encoding(t *testing.T) {
 
-	rawReq := "GET /index.html HTTP/1.1\r\nAccept-Encoding:gzip\r\n\r\n"
+	rawReq := "GET /index.html HTTP/1.1\r\nAccept-Encoding:invalid1, gzip, invalid2\r\n\r\n"
 
 	req := RequestFromBytes([]byte(rawReq))
 
-	assert.Equal(t, "gzip", req.AcceptEncoding())
+	assert.Equal(t, "gzip", req.AcceptEncoding()[0])
 }
