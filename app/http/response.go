@@ -3,7 +3,6 @@ package http
 import (
 	"bytes"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 )
@@ -12,15 +11,11 @@ func NewResponse(statusCode int, protocol string, payload []byte) *HttpResponse 
 	r := &HttpResponse{
 		Protocol:   protocol,
 		StatusCode: statusCode,
-		Payload:    payload,
+		payload:    payload,
 		Headers:    make(map[string]string),
 	}
 
-	if payload != nil {
-		r.SetContentLength(len(payload))
-	} else {
-		r.SetContentLength(0)
-	}
+	r.SetPayload(payload)
 
 	return r
 }
@@ -40,7 +35,7 @@ func NotFoundResponse(protocol string, payload []byte) *HttpResponse {
 type HttpResponse struct {
 	Protocol    string
 	StatusCode  int
-	Payload     []byte
+	payload     []byte
 	ContentType string
 	Headers     map[string]string
 }
@@ -54,11 +49,21 @@ func (r *HttpResponse) Bytes() []byte {
 }
 
 func (r *HttpResponse) Length() int {
-	if r.Payload != nil {
-		return len(r.Payload)
+	if r.payload != nil {
+		return len(r.payload)
 	}
 
 	return 0
+}
+
+func (r *HttpResponse) SetPayload(bytes []byte) {
+	r.payload = bytes
+
+	if bytes != nil {
+		r.SetContentLength(len(bytes))
+	} else {
+		r.SetContentLength(0)
+	}
 }
 
 func (r *HttpResponse) String() string {
@@ -67,7 +72,7 @@ func (r *HttpResponse) String() string {
 		r.StatusCode,
 		http.StatusText(r.StatusCode),
 		r.renderHeaders(),
-		string(r.Payload))
+		string(r.payload))
 }
 
 func (r *HttpResponse) SetContentType(contentType string) {
@@ -87,30 +92,9 @@ func (r *HttpResponse) renderHeaders() string {
 	var buff bytes.Buffer
 
 	for k, v := range r.Headers {
-		headerRaw := fmt.Sprintf("%s:%s\r\n", k, v)
+		headerRaw := fmt.Sprintf("%s: %s\r\n", k, v)
 		buff.WriteString(headerRaw)
 	}
 
 	return buff.String()
-}
-
-type ResponseWriter struct {
-	Conn     net.Conn
-	Encoding string
-	response *HttpResponse
-}
-
-func (rw *ResponseWriter) Write(response *HttpResponse) (int, error) {
-	rw.response = response
-
-	if rw.Encoding != "" {
-		// Compress
-		rw.response.Headers["Content-Encoding"] = rw.Encoding
-	}
-
-	return rw.flush()
-}
-
-func (rw *ResponseWriter) flush() (int, error) {
-	return rw.Conn.Write(rw.response.Bytes())
 }

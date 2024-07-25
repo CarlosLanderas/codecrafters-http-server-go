@@ -76,7 +76,6 @@ func (hr *HttpRequest) ValidEncoding() bool {
 }
 
 func (hr *HttpRequest) AcceptEncoding() []string {
-
 	val, ok := hr.Headers["Accept-Encoding"]
 
 	encodings := make([]string, 0)

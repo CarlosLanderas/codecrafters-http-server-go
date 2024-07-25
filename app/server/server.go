@@ -23,7 +23,6 @@ func New(port int, router *http.Router) *Server {
 
 func (s *Server) Start() error {
 	var err error
-
 	fmt.Println("Starting server on port:", s.port)
 
 	s.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", s.port))
@@ -59,7 +58,6 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	}
 
 	req := http.RequestFromBytes(buff)
-
 	route, err := s.router.Get(req)
 
 	if err != nil {
@@ -67,7 +65,6 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	}
 
 	w := &http.ResponseWriter{Conn: conn}
-
 	if req.ValidEncoding() {
 		w.Encoding = req.AcceptEncoding()[0]
 	}

@@ -15,15 +15,11 @@ func RootHandler(w *ResponseWriter, req *HttpRequest) error {
 func NotFoundHandler(w *ResponseWriter, req *HttpRequest) error {
 	_, err := w.Write(NotFoundResponse(req.Protocol, nil))
 	return err
-
 }
 
 func EchoHandler(w *ResponseWriter, req *HttpRequest) error {
-
 	parts := strings.Split(req.Path, "/")
-
 	content := parts[len(parts)-1]
-
 	resp := OkResponse(req.Protocol, []byte(content))
 	resp.SetContentType("text/plain")
 

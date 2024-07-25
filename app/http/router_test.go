@@ -8,7 +8,6 @@ import (
 
 func Test_Router(t *testing.T) {
 	router := NewRouter()
-
 	executed := false
 
 	router.Register("/echo/.*", "GET", func(w *ResponseWriter, hr *HttpRequest) error {

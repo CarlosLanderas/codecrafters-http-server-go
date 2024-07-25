@@ -2,7 +2,6 @@ package http
 
 import (
 	"io"
-	"net"
 	"strconv"
 	"testing"
 
@@ -20,25 +19,23 @@ func Test_Response(t *testing.T) {
 }
 
 func Test_Response_Bytes(t *testing.T) {
-
 	payload := string("content")
 	ok := OkResponse(Protocol, []byte(payload))
 	ok.SetContentType("text/plain")
 
 	resp := string(ok.Bytes())
 
-	assert.Equal(t, resp, "HTTP/1.1 200 OK\r\nContent-Length:7\r\nContent-Type:text/plain\r\n\r\ncontent")
+	assert.Equal(t, resp, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\n\r\ncontent")
 }
 
 func Test_Response_Content(t *testing.T) {
-
 	payload := "carlos"
 	ok := OkResponse(Protocol, []byte(payload))
 	ok.SetContentType("text/plain")
 
 	resp := string(ok.Bytes())
 
-	expectedResponse := "HTTP/1.1 200 OK\r\nContent-Length:6\r\nContent-Type:text/plain\r\n\r\ncarlos"
+	expectedResponse := "HTTP/1.1 200 OK\r\nContent-Length: 6\r\nContent-Type: text/plain\r\n\r\ncarlos"
 
 	assert.Equal(t, expectedResponse, resp)
 }
@@ -53,29 +50,4 @@ func Test_Response_Body(t *testing.T) {
 
 	assert.Equal(t, "payload", string(body))
 	assert.Equal(t, 7, length)
-
-}
-
-func Test_Response_Writer(t *testing.T) {
-
-	r, w := net.Pipe()
-
-	defer r.Close()
-	defer w.Close()
-
-	writer := ResponseWriter{Conn: w}
-
-	resp := NewResponse(200, "HTTP/1.1", []byte("lorem ipsum"))
-
-	respBytes := resp.Bytes()
-
-	go func() {
-		writer.Write(resp)
-	}()
-
-	buff := make([]byte, len(respBytes))
-
-	io.ReadFull(r, buff)
-
-	assert.Equal(t, buff, respBytes)
 }

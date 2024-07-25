@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-
 	var filesPath string
 
 	if slices.Contains(os.Args, "--directory") && len(os.Args) > 2 {

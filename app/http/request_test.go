@@ -7,7 +7,6 @@ import (
 )
 
 func Test_Request_From_Bytes(t *testing.T) {
-
 	rawReq := "GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n"
 
 	req := RequestFromBytes([]byte(rawReq))
@@ -23,9 +22,7 @@ func Test_Request_From_Bytes(t *testing.T) {
 }
 
 func Test_Request_Accept_Encoding(t *testing.T) {
-
 	rawReq := "GET /index.html HTTP/1.1\r\nAccept-Encoding:invalid1, gzip, invalid2\r\n\r\n"
-
 	req := RequestFromBytes([]byte(rawReq))
 
 	assert.Equal(t, "gzip", req.AcceptEncoding()[0])
